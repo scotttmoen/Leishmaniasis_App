@@ -1,8 +1,7 @@
 package com.example.diagnosticreadingapp
 
 import android.Manifest
-//import android.content.ContentValues
-import android.content.Context
+import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -11,16 +10,12 @@ import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.Preview
+import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
-//import androidx.core.app.ActivityCompat
-import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.diagnosticreadingapp.databinding.ActivityMainBinding
+import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -35,13 +30,12 @@ class MainActivity : AppCompatActivity() {
         viewBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
-        if (allPermissionsGranted(requireContext())) {
-            Log.d("guitar all perm","granted")
+        // Request camera permissions
+        if (allPermissionsGranted()) {
             startCamera()
         } else {
-            Log.d("guitar all perm","not granted")
             ActivityCompat.requestPermissions(
-                this, REQUIRED_PERMISSIONS.toTypedArray(), REQUEST_CODE_PERMISSIONS)
+                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
 
         viewBinding.takePhotoButton.setOnClickListener { takePhoto() }
@@ -53,10 +47,8 @@ class MainActivity : AppCompatActivity() {
         requestCode: Int, permissions: Array<String>, grantResults:
         IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        Log.d("guitars code",requestCode.toString())
-        Log.d("guitars permission", REQUEST_CODE_PERMISSIONS.toString())
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
-            if (allPermissionsGranted(requireContext())) {
+            if (allPermissionsGranted()) {
                 startCamera()
             } else {
                 Toast.makeText(this,
@@ -75,15 +67,13 @@ class MainActivity : AppCompatActivity() {
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, name)
             put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-            if(Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
                 put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/CameraX-Image")
             }
         }
-
         val outputOptions = ImageCapture.OutputFileOptions
             .Builder(contentResolver,
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                contentValues)
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
             .build()
 
         imageCapture.takePicture(
@@ -139,8 +129,9 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun allPermissionsGranted(context: Context) = REQUIRED_PERMISSIONS.all {
-        ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
+        ContextCompat.checkSelfPermission(
+            baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
 
     override fun onDestroy() {
@@ -152,15 +143,15 @@ class MainActivity : AppCompatActivity() {
         private const val TAG = "CameraXApp"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS: Int = 10
-        private val REQUIRED_PERMISSIONS = mutableListOf(
-            Manifest.permission.CAMERA,
-            Manifest.permission.RECORD_AUDIO,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-        ).apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                add(Manifest.permission.ACCESS_MEDIA_LOCATION)
-            }
-        }
+        private val REQUIRED_PERMISSIONS =
+            mutableListOf (
+                Manifest.permission.CAMERA,
+                Manifest.permission.RECORD_AUDIO
+            ).apply {
+                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+                    add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                }
+            }.toTypedArray()
 
     }
 
