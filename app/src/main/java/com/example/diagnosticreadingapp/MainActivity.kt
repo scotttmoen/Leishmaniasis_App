@@ -15,7 +15,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.diagnosticreadingapp.databinding.ActivityMainBinding
-import java.nio.ByteBuffer
+import com.example.diagnosticreadingapp.databinding.ActivityMainBinding.*
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -27,7 +27,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cameraExecutor: ExecutorService
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewBinding = ActivityMainBinding.inflate(layoutInflater)
+        viewBinding = inflate(layoutInflater)
         setContentView(viewBinding.root)
 
         // Request camera permissions
@@ -75,6 +75,7 @@ class MainActivity : AppCompatActivity() {
             .Builder(contentResolver,
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
             .build()
+        Log.d("guitar photo loc",  MediaStore.Images.Media.EXTERNAL_CONTENT_URI.toString())
 
         imageCapture.takePicture(
             outputOptions,
@@ -90,8 +91,10 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
                     Log.d(TAG, "This is where we'd transfer image to next activity.")
+                    ////////////////////////heree
                     val i = Intent(this@MainActivity, Activity2::class.java)
-                    i.putExtra("photoFile", output.toString())
+                    i.data = output.savedUri
+                    cameraExecutor.shutdown()
                     startActivity(i)
                 }
             }
