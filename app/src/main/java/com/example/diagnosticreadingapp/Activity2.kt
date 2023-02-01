@@ -26,12 +26,21 @@ class Activity2 : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_2)
 
+        //Zero out the pos, neg, and patient samples each time a new analysis image is initiated.
+        var posValueList  = mutableListOf<Int>()
+        var negValueList = mutableListOf<Int>()
+        var patValue = 0
+
+
+
+
         //Tying bindings from xml to layout
         val imageAnalyzeView = findViewById<ImageView>(R.id.imageViewAnalyze)
         val submitAnalyzeButton = findViewById<Button>(R.id.submitAnalyze)
         val imageAnalyze = this.intent.data
         val layoutPage2 = findViewById<ConstraintLayout>(R.id.layout_page_2)
 
+        //Set image to analysis window
         rGroup = findViewById(R.id.rGroup)
         Log.d("guitar imageUri", imageAnalyze.toString())
         imageAnalyzeView.setImageURI(imageAnalyze)
@@ -76,23 +85,26 @@ class Activity2 : AppCompatActivity() {
             Log.d("guitar x", crossHairImageView.x.toString())
             val canvas = Canvas(bitmap)
             layoutPage2.draw(canvas)
-            //TODO: Expand the  following to include an average area
-            val color = bitmap.getPixel(crossHairImageView.x.toInt()+(crossHairImageView.width/2), crossHairImageView.y.toInt()+(crossHairImageView.height/2))
-            val tempX = 0
-            val tempY = 0
-            for (i in tempX-1..tempX+1){
-                var crossX = crossHairImageView.x.toInt()+(crossHairImageView.width/2)+i
-                for (j in tempY-1..tempY+1){
-                    var crossY = crossHairImageView.y.toInt()+(crossHairImageView.height/2)
-                    var color = bitmap.getPixel(crossX,crossY)
-                    Log.d("guitar RGB OUT", Color.green(color).toString())
+
+            var color = getAverageColor(bitmap, crossHairImageView)
+            //color = color.toInt().toDouble()
+            val redColor = Color.red(color.toInt())
+            val greenColor = Color.green(color.toInt())
+            val blueColor = Color.blue(color.toInt())
+            when (radioType){
+                "patient" -> {
+                    Log.d("guitar", "patient")
+                    //TODO:Use green average as patient value and pull in averages of pos and negative values
                 }
-
+                "positive" -> {
+                    Log.d("guitar", "positive")
+                    //TODO:Use green average to add to posValueList
+                }
+                "negative" -> {
+                    Log.d("guitar", "negative")
+                    //TODO:Use green average to add to negValueList
+                }
             }
-
-            val redColor = Color.red(color)
-            val greenColor = Color.green(color)
-            val blueColor = Color.blue(color)
 
             Log.d("guitar submit",radioType+crossHairImageView.x.toString())
             Log.d("guitar submit red color", redColor.toString())
@@ -106,6 +118,27 @@ class Activity2 : AppCompatActivity() {
             layoutPage2.addView(crossHairImageView)
 
         }
+    }
+
+    private fun getAverageColor(
+        bitmap: Bitmap,
+        crossHairImageView: ImageView
+    ): Double {
+        //Setup to only read GREEN TODO: Why is this returning all color not just green?
+        val tempX = 0
+        val tempY = 0
+        var tempList = mutableListOf<Int>()
+        for (i in tempX - 1..tempX + 1) {
+            var crossX = crossHairImageView.x.toInt() + (crossHairImageView.width / 2) + i
+            for (j in tempY - 1..tempY + 1) {
+                var crossY = crossHairImageView.y.toInt() + (crossHairImageView.height / 2)
+                var color = bitmap.getPixel(crossX, crossY)
+                Log.d("guitar RGB OUT", Color.green(color).toString())
+                tempList.add(Color.green(color))
+            }
+        }
+        Log.d ("guitar average green", tempList.average().toString())
+        return tempList.average()
     }
 
 
