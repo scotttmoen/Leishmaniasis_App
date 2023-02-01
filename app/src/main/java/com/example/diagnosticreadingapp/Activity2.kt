@@ -86,11 +86,8 @@ class Activity2 : AppCompatActivity() {
             val canvas = Canvas(bitmap)
             layoutPage2.draw(canvas)
 
-            var color = getAverageColor(bitmap, crossHairImageView)
+            var greenColor = getAverageColor(bitmap, crossHairImageView)
             //color = color.toInt().toDouble()
-            val redColor = Color.red(color.toInt())
-            val greenColor = Color.green(color.toInt())
-            val blueColor = Color.blue(color.toInt())
             when (radioType){
                 "patient" -> {
                     Log.d("guitar", "patient")
@@ -107,9 +104,8 @@ class Activity2 : AppCompatActivity() {
             }
 
             Log.d("guitar submit",radioType+crossHairImageView.x.toString())
-            Log.d("guitar submit red color", redColor.toString())
             Log.d("guitar submit green color", greenColor.toString())
-            Log.d("guitar submit blue color", blueColor.toString())
+
             if (crossHairImageView.isEnabled){
                 layoutPage2.removeView(crossHairImageView)
             }
@@ -124,21 +120,25 @@ class Activity2 : AppCompatActivity() {
         bitmap: Bitmap,
         crossHairImageView: ImageView
     ): Double {
-        //Setup to only read GREEN TODO: Why is this returning all color not just green?
+        //Setup to only return GREEN
         val tempX = 0
         val tempY = 0
-        var tempList = mutableListOf<Int>()
+        var tempListGreen = mutableListOf<Int>()
+        var tempListRed = mutableListOf<Int>()
+        var tempListBlue = mutableListOf<Int>()
         for (i in tempX - 1..tempX + 1) {
             var crossX = crossHairImageView.x.toInt() + (crossHairImageView.width / 2) + i
             for (j in tempY - 1..tempY + 1) {
                 var crossY = crossHairImageView.y.toInt() + (crossHairImageView.height / 2)
                 var color = bitmap.getPixel(crossX, crossY)
-                Log.d("guitar RGB OUT", Color.green(color).toString())
-                tempList.add(Color.green(color))
+                Log.d("guitar Raw Green OUT", Color.green(color).toString())
+                tempListGreen.add(Color.green(color))
+                tempListBlue.add(Color.blue(color))
+                tempListRed.add(Color.red(color))
             }
         }
-        Log.d ("guitar average green", tempList.average().toString())
-        return tempList.average()
+        Log.d ("guitar average green", tempListGreen.average().toString())
+        return tempListGreen.average()
     }
 
 
