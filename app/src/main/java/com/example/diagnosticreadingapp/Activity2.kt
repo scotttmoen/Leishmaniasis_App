@@ -12,13 +12,15 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.RadioGroup
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-
+import java.io.IOException
 class Activity2 : AppCompatActivity() {
     private lateinit var rGroup: RadioGroup
-
+    private var radioType: String = ""
+    private lateinit var crossHairImageView: ImageView
     @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,12 +29,9 @@ class Activity2 : AppCompatActivity() {
         setContentView(R.layout.activity_2)
 
         //Zero out the pos, neg, and patient samples each time a new analysis image is initiated.
-        var posValueList  = mutableListOf<Int>()
-        var negValueList = mutableListOf<Int>()
+        val posValueList  = mutableListOf<Int>()
+        val negValueList = mutableListOf<Int>()
         var patValue = 0
-
-
-
 
         //Tying bindings from xml to layout
         val imageAnalyzeView = findViewById<ImageView>(R.id.imageViewAnalyze)
@@ -42,17 +41,16 @@ class Activity2 : AppCompatActivity() {
 
         //Set image to analysis window
         rGroup = findViewById(R.id.rGroup)
-        Log.d("guitar imageUri", imageAnalyze.toString())
         imageAnalyzeView.setImageURI(imageAnalyze)
 
         //Analysis image now set, add dispensable ImageView to which I can add the draggable crossHair to
         //This is the initial overlay
-        val crossHairImageView = ImageView(this)
-        crossHairImageView.setImageResource(R.drawable.baseline_gps_not_fixed_24)
-        layoutPage2.addView(crossHairImageView)
+        crossHairImageView = ImageView(this)
+        createCrossHair(crossHairImageView, layoutPage2)
 
         rGroup.setOnCheckedChangeListener { rGroup, _ ->
             Log.d("guitar changed radio", rGroup.checkedRadioButtonId.toString())
+            createCrossHair(crossHairImageView, layoutPage2)
 
         }
 
@@ -60,60 +58,76 @@ class Activity2 : AppCompatActivity() {
         crossHairImageView.setOnTouchListener { v, event ->
             when (event.action){
                 MotionEvent.ACTION_MOVE -> {
+                    Log.d("guitar location", "in action")
                     v.x = event.x
                     v.y = event.y
+
                     Log.d("guitar location x", v.x.toString())
                     Log.d("guitar location y", v.y.toString())
                 }
             }
-
             true
         }
 
         submitAnalyzeButton.setOnClickListener {
-            val radioType: String = if  (rGroup.checkedRadioButtonId.toString() == R.id.patientSamples.toString()){
-                "patient"
-            }else if (rGroup.checkedRadioButtonId.toString() == R.id.negativeControls.toString()){
-                "negative"
-            }else if (rGroup.checkedRadioButtonId.toString() == R.id.positiveControls.toString()){
-                "positive"
-            }else{
-                "none"
-            }
+
             val bitmap = Bitmap.createBitmap(layoutPage2.width, layoutPage2.height, Bitmap.Config.ARGB_8888)
-            Log.d("guitar width", crossHairImageView.width.toString())
-            Log.d("guitar x", crossHairImageView.x.toString())
             val canvas = Canvas(bitmap)
             layoutPage2.draw(canvas)
 
-            var greenColor = getAverageColor(bitmap, crossHairImageView)
-            //color = color.toInt().toDouble()
+            val greenColor = getAverageColor(bitmap, crossHairImageView)
+
             when (radioType){
                 "patient" -> {
                     Log.d("guitar", "patient")
-                    //TODO:Use green average as patient value and pull in averages of pos and negative values
+                    //TODO: check if at least one posValueList and one negValueList before calculating
+                    if (posValueList.isEmpty() or negValueList.isEmpty()){
+                        //popup with choose pos/neg value and try again
+                    }
+
+                    patValue = greenColor.toInt()
+                    val patientNormalized = (patValue-negValueList.average())/(posValueList.average()-negValueList.average())
+                    Log.d("guitar patient normalized", patientNormalized.toString())
+                    //TODO: add popup with value
+
+
                 }
                 "positive" -> {
                     Log.d("guitar", "positive")
-                    //TODO:Use green average to add to posValueList
+                    posValueList.add(greenColor.toInt())
                 }
                 "negative" -> {
+                    crossHairImageView.setColorFilter(Color.RED)
                     Log.d("guitar", "negative")
-                    //TODO:Use green average to add to negValueList
+                    negValueList.add(greenColor.toInt())
                 }
             }
 
             Log.d("guitar submit",radioType+crossHairImageView.x.toString())
             Log.d("guitar submit green color", greenColor.toString())
+            Log.d("guitar submit pos", posValueList.toString())
+            Log.d("guitar submit neg", negValueList.toString())
 
-            if (crossHairImageView.isEnabled){
-                layoutPage2.removeView(crossHairImageView)
-            }
-
-            crossHairImageView.setImageResource(R.drawable.baseline_gps_not_fixed_24)
-            layoutPage2.addView(crossHairImageView)
-
+            //Deselect rGroup
+            rGroup.clearCheck()
         }
+    }
+
+    private fun createCrossHair(
+        crossHairImageView: ImageView,
+        layoutPage2: ConstraintLayout
+    ) {
+        try {
+            layoutPage2.removeView(crossHairImageView)
+        }
+        catch (e: IOException){
+            e.printStackTrace()
+            Toast.makeText(applicationContext,"Some error", Toast.LENGTH_SHORT).show()
+        }
+        crossHairImageView.setImageResource(R.drawable.baseline_gps_not_fixed_24)
+        layoutPage2.addView(crossHairImageView)
+        crossHairImageView.x = (layoutPage2.width / 2 - (crossHairImageView.width / 2)).toFloat()
+        crossHairImageView.y = layoutPage2.height * 0.7.toFloat()
     }
 
     private fun getAverageColor(
@@ -123,14 +137,14 @@ class Activity2 : AppCompatActivity() {
         //Setup to only return GREEN
         val tempX = 0
         val tempY = 0
-        var tempListGreen = mutableListOf<Int>()
-        var tempListRed = mutableListOf<Int>()
-        var tempListBlue = mutableListOf<Int>()
+        val tempListGreen = mutableListOf<Int>()
+        val tempListRed = mutableListOf<Int>()
+        val tempListBlue = mutableListOf<Int>()
         for (i in tempX - 1..tempX + 1) {
-            var crossX = crossHairImageView.x.toInt() + (crossHairImageView.width / 2) + i
+            val crossX = crossHairImageView.x.toInt() + (crossHairImageView.width / 2) + i
             for (j in tempY - 1..tempY + 1) {
-                var crossY = crossHairImageView.y.toInt() + (crossHairImageView.height / 2)
-                var color = bitmap.getPixel(crossX, crossY)
+                val crossY = crossHairImageView.y.toInt() + (crossHairImageView.height / 2)
+                val color = bitmap.getPixel(crossX, crossY)
                 Log.d("guitar Raw Green OUT", Color.green(color).toString())
                 tempListGreen.add(Color.green(color))
                 tempListBlue.add(Color.blue(color))
@@ -140,11 +154,22 @@ class Activity2 : AppCompatActivity() {
         Log.d ("guitar average green", tempListGreen.average().toString())
         return tempListGreen.average()
     }
-
-
     fun whichRadio(view: View) {
         // This is called from xml, do not delete or remove view
         val individualRadio = rGroup.checkedRadioButtonId
+        if  (rGroup.checkedRadioButtonId.toString() == R.id.patientSamples.toString()){
+            radioType = "patient"
+            crossHairImageView.setColorFilter(Color.MAGENTA)
+        }else if (rGroup.checkedRadioButtonId.toString() == R.id.negativeControls.toString()){
+            radioType = "negative"
+            crossHairImageView.setColorFilter(Color.RED)
+        }else if (rGroup.checkedRadioButtonId.toString() == R.id.positiveControls.toString()){
+            radioType = "positive"
+            crossHairImageView.setColorFilter(Color.GREEN)
+        }else{
+            radioType = "none"
+        }
+
         Log.d("guitar which radio", individualRadio.toString())
     }
 }
