@@ -16,6 +16,8 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.isVisible
+import com.google.android.material.snackbar.Snackbar
 import java.io.IOException
 class Activity2 : AppCompatActivity() {
     private lateinit var rGroup: RadioGroup
@@ -80,17 +82,28 @@ class Activity2 : AppCompatActivity() {
             when (radioType){
                 "patient" -> {
                     Log.d("guitar", "patient")
-                    //TODO: check if at least one posValueList and one negValueList before calculating
-                    if (posValueList.isEmpty() or negValueList.isEmpty()){
-                        //popup with choose pos/neg value and try again
+                    //check if at least one posValueList and one negValueList before calculating
+                    if (posValueList.isEmpty() || negValueList.isEmpty()){
+                        Log.d("guitar","restart1")
+                        Snackbar.make(layoutPage2, "You must have positive and negative samples to analyze patient samples.", Snackbar.LENGTH_INDEFINITE).apply{
+                            setAction("DISMISS"){
+                                Log.d("guitar","restart2")
+
+                            }
+                        }.show()
+                        //Toast.makeText(this@Activity2, "Please ensure you have positive and negative samples before attempting to read patients sample", Toast.LENGTH_LONG).show()
                     }
 
                     patValue = greenColor.toInt()
                     val patientNormalized = (patValue-negValueList.average())/(posValueList.average()-negValueList.average())
                     Log.d("guitar patient normalized", patientNormalized.toString())
-                    //TODO: add popup with value
+                    //popup with normalized patient value
+                    Snackbar.make(layoutPage2, "Patient\'s value ${patientNormalized.toString()}", Snackbar.LENGTH_INDEFINITE).apply{
+                        setAction("DISMISS"){
+                            Log.d("guitar","patient results")
 
-
+                        }
+                    }.show()
                 }
                 "positive" -> {
                     Log.d("guitar", "positive")
@@ -128,6 +141,7 @@ class Activity2 : AppCompatActivity() {
         layoutPage2.addView(crossHairImageView)
         crossHairImageView.x = (layoutPage2.width / 2 - (crossHairImageView.width / 2)).toFloat()
         crossHairImageView.y = layoutPage2.height * 0.7.toFloat()
+        crossHairImageView.isVisible = false
     }
 
     private fun getAverageColor(
@@ -156,6 +170,7 @@ class Activity2 : AppCompatActivity() {
     }
     fun whichRadio(view: View) {
         // This is called from xml, do not delete or remove view
+        crossHairImageView.isVisible = true
         val individualRadio = rGroup.checkedRadioButtonId
         if  (rGroup.checkedRadioButtonId.toString() == R.id.patientSamples.toString()){
             radioType = "patient"
