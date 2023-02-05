@@ -61,8 +61,14 @@ class Activity2 : AppCompatActivity() {
             when (event.action){
                 MotionEvent.ACTION_MOVE -> {
                     Log.d("guitar location", "in action")
-                    v.x = event.x
-                    v.y = event.y
+//                    v.x = event.x
+//                    v.y = event.y
+                    v.y = event.rawY - v.height
+                    v.x = event.rawX - v.width/2
+
+                    if (v.x<0){
+                        Log.d("guitar pad", "x < 0")
+                    }
 
                     Log.d("guitar location x", v.x.toString())
                     Log.d("guitar location y", v.y.toString())
@@ -138,9 +144,11 @@ class Activity2 : AppCompatActivity() {
             Toast.makeText(applicationContext,"Some error", Toast.LENGTH_SHORT).show()
         }
         crossHairImageView.setImageResource(R.drawable.baseline_gps_not_fixed_24)
+        crossHairImageView.setPaddingRelative(200,200,200,200)
         layoutPage2.addView(crossHairImageView)
         crossHairImageView.x = (layoutPage2.width / 2 - (crossHairImageView.width / 2)).toFloat()
         crossHairImageView.y = layoutPage2.height * 0.7.toFloat()
+
         crossHairImageView.isVisible = false
     }
 
