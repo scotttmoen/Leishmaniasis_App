@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.text.SpannableStringBuilder
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
@@ -16,9 +17,13 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.text.color
+import androidx.core.text.italic
 import androidx.core.view.isVisible
 import com.google.android.material.snackbar.Snackbar
 import java.io.IOException
+import kotlin.math.roundToInt
+
 class Activity2 : AppCompatActivity() {
     private lateinit var rGroup: RadioGroup
     private var radioType: String = ""
@@ -51,7 +56,6 @@ class Activity2 : AppCompatActivity() {
         createCrossHair(crossHairImageView, layoutPage2)
 
         rGroup.setOnCheckedChangeListener { rGroup, _ ->
-            Log.d("guitar changed radio", rGroup.checkedRadioButtonId.toString())
             createCrossHair(crossHairImageView, layoutPage2)
 
         }
@@ -60,9 +64,7 @@ class Activity2 : AppCompatActivity() {
         crossHairImageView.setOnTouchListener { v, event ->
             when (event.action){
                 MotionEvent.ACTION_MOVE -> {
-                    Log.d("guitar location", "in action")
-//                    v.x = event.x
-//                    v.y = event.y
+
                     v.y = event.rawY - v.height
                     v.x = event.rawX - v.width/2
 
@@ -97,14 +99,28 @@ class Activity2 : AppCompatActivity() {
 
                             }
                         }.show()
-                        //Toast.makeText(this@Activity2, "Please ensure you have positive and negative samples before attempting to read patients sample", Toast.LENGTH_LONG).show()
+
                     }
 
                     patValue = greenColor.toInt()
                     val patientNormalized = (patValue-negValueList.average())/(posValueList.average()-negValueList.average())
+                    var myCustomString = SpannableStringBuilder()
                     Log.d("guitar patient normalized", patientNormalized.toString())
-                    //popup with normalized patient value
-                    Snackbar.make(layoutPage2, "Patient\'s value ${patientNormalized.toString()}", Snackbar.LENGTH_INDEFINITE).apply{
+                    if (patientNormalized>0){
+                        val reportNumber = (patientNormalized * 100).roundToInt()
+                        //popup with normalized patient value
+                        myCustomString = SpannableStringBuilder()
+                            .append("The chance of the patient having ")
+                            .italic{append ("Leishmaniasis ")}
+                            .append("is ")
+                            .color(Color.RED, {append("${reportNumber}%")})
+                    }else{
+                        myCustomString = SpannableStringBuilder()
+                            .color(Color.RED) { append("Patient values are not within your positive and negative controls.") }
+                    }
+
+
+                    Snackbar.make(layoutPage2,myCustomString , Snackbar.LENGTH_INDEFINITE).apply{
                         setAction("DISMISS"){
                             Log.d("guitar","patient results")
 
@@ -144,7 +160,6 @@ class Activity2 : AppCompatActivity() {
             Toast.makeText(applicationContext,"Some error", Toast.LENGTH_SHORT).show()
         }
         crossHairImageView.setImageResource(R.drawable.baseline_gps_not_fixed_24)
-        crossHairImageView.setPaddingRelative(200,200,200,200)
         layoutPage2.addView(crossHairImageView)
         crossHairImageView.x = (layoutPage2.width / 2 - (crossHairImageView.width / 2)).toFloat()
         crossHairImageView.y = layoutPage2.height * 0.7.toFloat()
@@ -173,13 +188,13 @@ class Activity2 : AppCompatActivity() {
                 tempListRed.add(Color.red(color))
             }
         }
-        Log.d ("guitar average green", tempListGreen.average().toString())
+        Log.d ("guitar temp average green", tempListGreen.average().toString())
         return tempListGreen.average()
     }
     fun whichRadio(view: View) {
         // This is called from xml, do not delete or remove view
         crossHairImageView.isVisible = true
-        val individualRadio = rGroup.checkedRadioButtonId
+        //val individualRadio = rGroup.checkedRadioButtonId
         if  (rGroup.checkedRadioButtonId.toString() == R.id.patientSamples.toString()){
             radioType = "patient"
             crossHairImageView.setColorFilter(Color.MAGENTA)
@@ -192,8 +207,6 @@ class Activity2 : AppCompatActivity() {
         }else{
             radioType = "none"
         }
-
-        Log.d("guitar which radio", individualRadio.toString())
     }
 }
 
