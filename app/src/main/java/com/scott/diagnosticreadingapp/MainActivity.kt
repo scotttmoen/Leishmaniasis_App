@@ -1,4 +1,4 @@
-package com.example.diagnosticreadingapp
+package com.scott.diagnosticreadingapp
 
 import android.Manifest
 import android.content.ContentValues
@@ -14,8 +14,8 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.diagnosticreadingapp.databinding.ActivityMainBinding
-import com.example.diagnosticreadingapp.databinding.ActivityMainBinding.*
+import com.scott.diagnosticreadingapp.databinding.ActivityMainBinding
+import com.scott.diagnosticreadingapp.databinding.ActivityMainBinding.*
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService

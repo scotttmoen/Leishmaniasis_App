@@ -1,4 +1,4 @@
-package com.example.diagnosticreadingapp
+package com.scott.diagnosticreadingapp
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
