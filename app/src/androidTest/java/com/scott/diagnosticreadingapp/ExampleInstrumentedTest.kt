@@ -1,4 +1,4 @@
-package com.example.diagnosticreadingapp
+package com.scott.diagnosticreadingapp
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

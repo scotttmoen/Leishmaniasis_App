@@ -36,18 +36,19 @@ class Activity2 : AppCompatActivity() {
         setContentView(R.layout.activity_2)
 
         //Zero out the pos, neg, and patient samples each time a new analysis image is initiated.
-        val posValueList  = mutableListOf<Int>()
-        val negValueList = mutableListOf<Int>()
-        var patValue = 0
+        var posValueList = mutableListOf<Int>()
+        var negValueList = mutableListOf<Int>()
+        var patValue: Int
 
         //Tying bindings from xml to layout
         val imageAnalyzeView = findViewById<ImageView>(R.id.imageViewAnalyze)
         val submitAnalyzeButton = findViewById<Button>(R.id.submitAnalyze)
+        val eraseButton = findViewById<Button>(R.id.eraseValues)
         val imageAnalyze = this.intent.data
         val layoutPage2 = findViewById<ConstraintLayout>(R.id.layout_page_2)
 
         //Set image to analysis window
-        rGroup = findViewById(R.id.rGroup)
+        this.rGroup = findViewById(R.id.rGroup)
         imageAnalyzeView.setImageURI(imageAnalyze)
 
         //Analysis image now set, add dispensable ImageView to which I can add the draggable crossHair to
@@ -55,7 +56,7 @@ class Activity2 : AppCompatActivity() {
         crossHairImageView = ImageView(this)
         createCrossHair(crossHairImageView, layoutPage2)
 
-        rGroup.setOnCheckedChangeListener { rGroup, _ ->
+        this.rGroup.setOnCheckedChangeListener { _, _ ->
             createCrossHair(crossHairImageView, layoutPage2)
 
         }
@@ -78,7 +79,11 @@ class Activity2 : AppCompatActivity() {
             }
             true
         }
+        eraseButton.setOnClickListener {
+            posValueList = mutableListOf()
+            negValueList = mutableListOf()
 
+        }
         submitAnalyzeButton.setOnClickListener {
 
             val bitmap = Bitmap.createBitmap(layoutPage2.width, layoutPage2.height, Bitmap.Config.ARGB_8888)
@@ -99,23 +104,19 @@ class Activity2 : AppCompatActivity() {
 
                             }
                         }.show()
-
                     }
-
                     patValue = greenColor.toInt()
                     val patientNormalized = (patValue-negValueList.average())/(posValueList.average()-negValueList.average())
-                    var myCustomString = SpannableStringBuilder()
-                    Log.d("guitar patient normalized", patientNormalized.toString())
-                    if (patientNormalized>0){
+                    val myCustomString: SpannableStringBuilder = if (patientNormalized>0){
                         val reportNumber = (patientNormalized * 100).roundToInt()
                         //popup with normalized patient value
-                        myCustomString = SpannableStringBuilder()
+                        SpannableStringBuilder()
                             .append("The chance of the patient having ")
                             .italic{append ("Leishmaniasis ")}
                             .append("is ")
-                            .color(Color.RED, {append("${reportNumber}%")})
+                            .color(Color.RED) { append("${reportNumber}%") }
                     }else{
-                        myCustomString = SpannableStringBuilder()
+                        SpannableStringBuilder()
                             .color(Color.RED) { append("Patient values are not within your positive and negative controls.") }
                     }
 
@@ -136,6 +137,7 @@ class Activity2 : AppCompatActivity() {
                     Log.d("guitar", "negative")
                     negValueList.add(greenColor.toInt())
                 }
+
             }
 
             Log.d("guitar submit",radioType+crossHairImageView.x.toString())
@@ -179,6 +181,7 @@ class Activity2 : AppCompatActivity() {
         val tempListBlue = mutableListOf<Int>()
         for (i in tempX - 1..tempX + 1) {
             val crossX = crossHairImageView.x.toInt() + (crossHairImageView.width / 2) + i
+            Log.d("guitar","cross hairX is $crossX")
             for (j in tempY - 1..tempY + 1) {
                 val crossY = crossHairImageView.y.toInt() + (crossHairImageView.height / 2)
                 val color = bitmap.getPixel(crossX, crossY)

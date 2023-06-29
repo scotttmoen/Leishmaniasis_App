@@ -11,4 +11,5 @@
     <string name="negative_controls">Negative Controls</string>
     <string name="patient_samples">Patient Samples</string>
     <string name="Submit">Submit</string>
+    <string name="EraseAll">Clear</string>
 </resources>

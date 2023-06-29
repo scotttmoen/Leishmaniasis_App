@@ -1,4 +1,5 @@
-package com.example.diagnosticreadingapp
+package com.scott.diagnosticreadingapp
+
 
 import org.junit.Test
 
