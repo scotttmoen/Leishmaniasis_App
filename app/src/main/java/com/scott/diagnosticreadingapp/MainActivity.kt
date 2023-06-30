@@ -21,6 +21,7 @@ import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
+@Suppress("BooleanMethodIsAlwaysInverted")
 class MainActivity : AppCompatActivity() {
     private lateinit var viewBinding : ActivityMainBinding
     private var imageCapture : ImageCapture? = null
@@ -75,7 +76,7 @@ class MainActivity : AppCompatActivity() {
             .Builder(contentResolver,
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
             .build()
-        Log.d("guitar photo loc",  MediaStore.Images.Media.EXTERNAL_CONTENT_URI.toString())
+        Log.d("dog photo loc",  MediaStore.Images.Media.EXTERNAL_CONTENT_URI.toString())
 
         imageCapture.takePicture(
             outputOptions,
@@ -91,7 +92,6 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
                     Log.d(TAG, "This is where we'd transfer image to next activity.")
-                    ////////////////////////heree
                     val i = Intent(this@MainActivity, Activity2::class.java)
                     i.data = output.savedUri
                     cameraExecutor.shutdown()
@@ -107,7 +107,7 @@ class MainActivity : AppCompatActivity() {
         cameraProviderFuture.addListener({
             // Used to bind the lifecycle of cameras to the lifecycle owner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-            Log.d("guitar start camera", "In start camera")
+            Log.d("dog start camera", "In start camera")
             // Preview
             val preview = Preview.Builder()
                 .build()

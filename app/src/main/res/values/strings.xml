@@ -2,8 +2,6 @@
     <string name="app_name">Diagnostic Reading App</string>
     <string name="initial_image_from_camera">Initial image from camera</string>
     <string name="take_photo">Take Photo</string>
-    <string name="takePhotoButton">takePhotoButton</string>
-    <string name="intro_text">intro_text</string>
     <string name="takeAPicture">Center your samples and\n take a picture.</string>
     <string name="analyzePicture">Analyze your samples.</string>
     <string name="view_area_for_analysis">View area for analysis.</string>
@@ -12,4 +10,5 @@
     <string name="patient_samples">Patient Samples</string>
     <string name="Submit">Submit</string>
     <string name="EraseAll">Clear</string>
+    <string name="constraint_for_analysis_image">constraint for analysis image</string>
 </resources>

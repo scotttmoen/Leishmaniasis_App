@@ -28,10 +28,11 @@ class Activity2 : AppCompatActivity() {
     private lateinit var rGroup: RadioGroup
     private var radioType: String = ""
     private lateinit var crossHairImageView: ImageView
+
     @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d("guitar", "Second activity started")
+        Log.d("dog", "Second activity started")
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_2)
 
@@ -45,36 +46,54 @@ class Activity2 : AppCompatActivity() {
         val submitAnalyzeButton = findViewById<Button>(R.id.submitAnalyze)
         val eraseButton = findViewById<Button>(R.id.eraseValues)
         val imageAnalyze = this.intent.data
-        val layoutPage2 = findViewById<ConstraintLayout>(R.id.layout_page_2)
+        val imageConstraint = findViewById<ConstraintLayout>(R.id.image_constraint)
 
         //Set image to analysis window
-        this.rGroup = findViewById(R.id.rGroup)
+        this.rGroup = this.findViewById(R.id.rGroup)
         imageAnalyzeView.setImageURI(imageAnalyze)
 
         //Analysis image now set, add dispensable ImageView to which I can add the draggable crossHair to
         //This is the initial overlay
         crossHairImageView = ImageView(this)
-        createCrossHair(crossHairImageView, layoutPage2)
+        createCrossHair(crossHairImageView, imageConstraint, imageAnalyzeView)
 
         this.rGroup.setOnCheckedChangeListener { _, _ ->
-            createCrossHair(crossHairImageView, layoutPage2)
+            createCrossHair(crossHairImageView, imageConstraint, imageAnalyzeView)
 
         }
 
-         //This registers change to radio button
+
+        //This registers change to radio button
         crossHairImageView.setOnTouchListener { v, event ->
-            when (event.action){
+            when (event.action) {
+
                 MotionEvent.ACTION_MOVE -> {
+//
+                    v.y = event.rawY - 400
+                    v.x = event.rawX
 
-                    v.y = event.rawY - v.height
-                    v.x = event.rawX - v.width/2
+//                    Log.d("dog iConst x at v", imageConstraint.x.toString())
+//                    Log.d("dog iConst y at v", imageConstraint.y.toString())
+//                    Log.d("dog imageAView max height", " " + imageAnalyzeView.measuredHeight)
+//                    Log.d("dog imageAView max width", " " + imageAnalyzeView.measuredWidth)
+//                    Log.d("dog rawEvent x", " " + event.rawX)
+//                    Log.d("dog rawEvent y", " " + event.rawY)
 
-                    if (v.x<0){
-                        Log.d("guitar pad", "x < 0")
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    Log.d("up dog rawEvent x", " " + event.rawX)
+                    if ((crossHairImageView.x) > (imageAnalyzeView.measuredWidth - crossHairImageView.width)) {
+                        crossHairImageView.x =
+                            (imageAnalyzeView.measuredWidth - crossHairImageView.width).toFloat()
+                    } else if ((crossHairImageView.y) > (imageAnalyzeView.measuredHeight - crossHairImageView.height)) {
+                        crossHairImageView.y =
+                            (imageAnalyzeView.measuredHeight - crossHairImageView.height).toFloat()
+                    } else if ((crossHairImageView.x) < 0) {
+                        crossHairImageView.x = 0F
+                    } else if ((crossHairImageView.y) < 0) {
+                        crossHairImageView.y = 0F
                     }
-
-                    Log.d("guitar location x", v.x.toString())
-                    Log.d("guitar location y", v.y.toString())
                 }
             }
             true
@@ -86,64 +105,72 @@ class Activity2 : AppCompatActivity() {
         }
         submitAnalyzeButton.setOnClickListener {
 
-            val bitmap = Bitmap.createBitmap(layoutPage2.width, layoutPage2.height, Bitmap.Config.ARGB_8888)
+            val bitmap = Bitmap.createBitmap(
+                imageAnalyzeView.width,
+                imageAnalyzeView.height,
+                Bitmap.Config.ARGB_8888
+            )
             val canvas = Canvas(bitmap)
-            layoutPage2.draw(canvas)
+            imageAnalyzeView.draw(canvas)
 
             val greenColor = getAverageColor(bitmap, crossHairImageView)
 
-            when (radioType){
+            when (radioType) {
                 "patient" -> {
-                    Log.d("guitar", "patient")
+                    Log.d("dog", "patient")
                     //check if at least one posValueList and one negValueList before calculating
-                    if (posValueList.isEmpty() || negValueList.isEmpty()){
-                        Log.d("guitar","restart1")
-                        Snackbar.make(layoutPage2, "You must have positive and negative samples to analyze patient samples.", Snackbar.LENGTH_INDEFINITE).apply{
-                            setAction("DISMISS"){
-                                Log.d("guitar","restart2")
+                    if (posValueList.isEmpty() || negValueList.isEmpty()) {
+                        Log.d("dog", "restart1")
+                        Snackbar.make(
+                            imageConstraint,
+                            "You must have positive and negative samples to analyze patient samples.",
+                            Snackbar.LENGTH_INDEFINITE
+                        ).apply {
+                            setAction("DISMISS") {
+                                Log.d("dog", "restart2")
 
                             }
                         }.show()
                     }
                     patValue = greenColor.toInt()
-                    val patientNormalized = (patValue-negValueList.average())/(posValueList.average()-negValueList.average())
-                    val myCustomString: SpannableStringBuilder = if (patientNormalized>0){
+                    val patientNormalized =
+                        (patValue - negValueList.average()) / (posValueList.average() - negValueList.average())
+                    val myCustomString: SpannableStringBuilder = if (patientNormalized > 0) {
                         val reportNumber = (patientNormalized * 100).roundToInt()
                         //popup with normalized patient value
                         SpannableStringBuilder()
                             .append("The chance of the patient having ")
-                            .italic{append ("Leishmaniasis ")}
+                            .italic { append("Leishmaniasis ") }
                             .append("is ")
                             .color(Color.RED) { append("${reportNumber}%") }
-                    }else{
+                    } else {
                         SpannableStringBuilder()
                             .color(Color.RED) { append("Patient values are not within your positive and negative controls.") }
                     }
-
-
-                    Snackbar.make(layoutPage2,myCustomString , Snackbar.LENGTH_INDEFINITE).apply{
-                        setAction("DISMISS"){
-                            Log.d("guitar","patient results")
-
-                        }
-                    }.show()
+                    Snackbar.make(imageConstraint, myCustomString, Snackbar.LENGTH_INDEFINITE)
+                        .apply {
+                            setAction("DISMISS") {
+                                Log.d("dog", "patient results")
+                            }
+                        }.show()
                 }
+
                 "positive" -> {
-                    Log.d("guitar", "positive")
+                    Log.d("dog", "positive")
                     posValueList.add(greenColor.toInt())
                 }
+
                 "negative" -> {
                     crossHairImageView.setColorFilter(Color.RED)
-                    Log.d("guitar", "negative")
+                    Log.d("dog", "negative")
                     negValueList.add(greenColor.toInt())
                 }
 
             }
-
-            Log.d("guitar submit",radioType+crossHairImageView.x.toString())
-            Log.d("guitar submit green color", greenColor.toString())
-            Log.d("guitar submit pos", posValueList.toString())
-            Log.d("guitar submit neg", negValueList.toString())
+            Log.d("dog submit", radioType + crossHairImageView.x.toString())
+            Log.d("dog submit green color", greenColor.toString())
+            Log.d("dog submit pos", posValueList.toString())
+            Log.d("dog submit neg", negValueList.toString())
 
             //Deselect rGroup
             rGroup.clearCheck()
@@ -152,20 +179,20 @@ class Activity2 : AppCompatActivity() {
 
     private fun createCrossHair(
         crossHairImageView: ImageView,
-        layoutPage2: ConstraintLayout
+        imageConstraint: ConstraintLayout,
+        imageAnalyzeView: ImageView
     ) {
         try {
-            layoutPage2.removeView(crossHairImageView)
-        }
-        catch (e: IOException){
+            imageConstraint.removeView(crossHairImageView)
+        } catch (e: IOException) {
             e.printStackTrace()
-            Toast.makeText(applicationContext,"Some error", Toast.LENGTH_SHORT).show()
+            Toast.makeText(applicationContext, "Some error", Toast.LENGTH_SHORT).show()
         }
         crossHairImageView.setImageResource(R.drawable.baseline_gps_not_fixed_24)
-        layoutPage2.addView(crossHairImageView)
-        crossHairImageView.x = (layoutPage2.width / 2 - (crossHairImageView.width / 2)).toFloat()
-        crossHairImageView.y = layoutPage2.height * 0.7.toFloat()
-
+        imageConstraint.addView(crossHairImageView)
+        crossHairImageView.x =
+            (imageAnalyzeView.width / 2 - (crossHairImageView.width / 2)).toFloat()
+        crossHairImageView.y = imageAnalyzeView.height * 0.5.toFloat()
         crossHairImageView.isVisible = false
     }
 
@@ -181,35 +208,37 @@ class Activity2 : AppCompatActivity() {
         val tempListBlue = mutableListOf<Int>()
         for (i in tempX - 1..tempX + 1) {
             val crossX = crossHairImageView.x.toInt() + (crossHairImageView.width / 2) + i
-            Log.d("guitar","cross hairX is $crossX")
+            Log.d("dog", "cross hairX is $crossX")
             for (j in tempY - 1..tempY + 1) {
                 val crossY = crossHairImageView.y.toInt() + (crossHairImageView.height / 2)
                 val color = bitmap.getPixel(crossX, crossY)
-                Log.d("guitar Raw Green OUT", Color.green(color).toString())
+                Log.d("dog Raw Green OUT", Color.green(color).toString())
                 tempListGreen.add(Color.green(color))
                 tempListBlue.add(Color.blue(color))
                 tempListRed.add(Color.red(color))
             }
         }
-        Log.d ("guitar temp average green", tempListGreen.average().toString())
+        Log.d("dog temp average green", tempListGreen.average().toString())
         return tempListGreen.average()
     }
+
     fun whichRadio(view: View) {
         // This is called from xml, do not delete or remove view
         crossHairImageView.isVisible = true
         //val individualRadio = rGroup.checkedRadioButtonId
-        if  (rGroup.checkedRadioButtonId.toString() == R.id.patientSamples.toString()){
+        if (rGroup.checkedRadioButtonId.toString() == R.id.patientSamples.toString()) {
             radioType = "patient"
             crossHairImageView.setColorFilter(Color.MAGENTA)
-        }else if (rGroup.checkedRadioButtonId.toString() == R.id.negativeControls.toString()){
+        } else if (rGroup.checkedRadioButtonId.toString() == R.id.negativeControls.toString()) {
             radioType = "negative"
             crossHairImageView.setColorFilter(Color.RED)
-        }else if (rGroup.checkedRadioButtonId.toString() == R.id.positiveControls.toString()){
+        } else if (rGroup.checkedRadioButtonId.toString() == R.id.positiveControls.toString()) {
             radioType = "positive"
             crossHairImageView.setColorFilter(Color.GREEN)
-        }else{
+        } else {
             radioType = "none"
         }
+        Log.d("dog", view.height.toString())
     }
 }
 
