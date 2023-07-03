@@ -10,5 +10,6 @@
     <string name="patient_samples">Patient Samples</string>
     <string name="Submit">Submit</string>
     <string name="EraseAll">Clear</string>
+    <string name="privacy_policy"><a href="https://github.com/scotttmoen/Diagnostic_Reading_App/blob/master/Privacy_Policy.md">Our Privacy Policy</a></string>
     <string name="constraint_for_analysis_image">constraint for analysis image</string>
 </resources>
